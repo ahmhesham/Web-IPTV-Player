@@ -1,0 +1,8 @@
+#EXTINF:-1 tvg-name="Mbc Masr" tvg-logo="https://i.imgur.com/BB93NQP.png" tvg-id="MbcMasr.qa" group-title="Drama",Mbc Masr
+https://shls-masr-ak.akamaized.net/out/v1/d5036cabf11e45bf9d0db410ca135c18/index.m3u8
+#EXTINF:-1 tvg-name="Dubai One" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/7/7d/Dubaione-logo.png" tvg-id="DubaiOne.ae" group-title="United Arab Emirates",Dubai One
+https://dminnvll.cdn.mangomolo.com/dubaione/smil:dubaione.stream.smil/playlist.m3u8
+#EXTINF:-1 tvg-name="Mbc Drama" tvg-logo="" tvg-id="MbcDrama.ae" group-title="Drama",Mbc Drama
+https://mbcdrama-usa-ak.akamaized.net/out/v1/876f960feec24a8aba9e9d3f9023174b/index.m3u8
+#EXTINF:-1 tvg-name="Rotana Cinema KSA" tvg-logo="" tvg-id="RotanaCinemaKSA.sa" group-title="Drama",Rotana Cinema KSA
+https://bcovlive-a.akamaihd.net/9527a892aeaf43019fd9eeb77ad1516e/eu-central-1/6057955906001/playlist.m3u8
