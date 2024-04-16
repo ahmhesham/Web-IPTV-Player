@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    
     <title>IPTV Player</title>
+    <!-- Include Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <!-- Include Video.js CSS -->
     <link href="https://vjs.zencdn.net/7.15.4/video-js.css" rel="stylesheet">
     <!-- Add custom CSS styles -->
@@ -15,13 +16,10 @@
             background-color: #2A2B2B;
         }
 
-        
-
         #iptv-player {
+            display: none;
             width: 100%;
-            height: 500px; 
-            align-self: center;
-           
+            height: 500px;
         }
 
         .selector {
@@ -40,38 +38,74 @@
         .selector option {
             padding: 5px;
         }
-.grid-container {
-  display: grid;
-  grid-template-columns: 70% 25%; 
-  gap: 20px; 
-}
 
-.grid-item {
-  text-align: center;
-}
+        .grid-containerr {
+            display: grid;
+            grid-template-columns: 70% 25%;
+            gap: 20px;
+        }
 
-    .container {
-    position: relative;
-    width: 100%; 
-    }
+        .grid-itemm {
+            text-align: center;
+        }
+
+        .containerr {
+            position: relative;
+            width: 100%;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .file-input-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-input-container input[type="file"] {
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        .file-input-container button {
+            flex-shrink: 0;
+        }
     </style>
 </head>
 <body>
-<div class="grid-container" style="margin-top: 20px;">
-    <div class="grid-item" style="text-align: left; margin-left: 10px;">
-    <center>
-        <video id="iptv-player" class="video-js vjs-default-skin" controls preload="auto" data-setup="{}">
-        </video>
-    </center>
-        </div>
 
-   <div class="grid-item" style="text-align: left;">
-    <select id="channel-selector" class="selector">
-       
-    </select>
-        </div>
+<!-- First page -->
+<div id="first-page" class="containerr">
+    <center>
+        <h2>Select Playlist Source</h2>
+        <button id="from-file-btn" class="btn btn-primary">From File</button>
+        <button id="from-link-btn" class="btn btn-primary">From Link</button>
+    </center>
 </div>
 
+<!-- Second page -->
+<div id="second-page" class="containerr hidden">
+    <div class="grid-containerr" style="margin-top: 20px;">
+        <div class="grid-itemm">
+            <video id="iptv-player" class="video-js vjs-default-skin" controls preload="auto" data-setup="{}" style="margin-left: 10px;"></video>
+        </div>
+        <div class="grid-itemm">
+            <form id="file-form" class="hidden">
+                <div class="file-input-container">
+                    <input type="file" id="file-input" accept=".m3u,.m3u8">
+                    <button id="load-file-btn" class="btn btn-primary hidden" type="button">Load Playlist</button>
+                </div>
+            </form>
+            <form id="link-form" class="hidden">
+                <input type="text" id="link-input" placeholder="Enter M3U8 link">
+                <button id="load-link-btn" class="btn btn-primary" type="button">Load Playlist</button>
+            </form>
+            <select id="channel-selector" class="selector"></select>
+        </div>
+    </div>
+</div>
 
 <center>
     <footer style="color: #ccc; margin-top: 150px;">
@@ -83,54 +117,95 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialize Video.js player
         const player = videojs('iptv-player');
+        const playerElement = document.getElementById('iptv-player');
 
-        // Fetch the M3U8 file
-        fetch('mbc.m3u')
-            .then(response => response.text())
-            .then(data => {
-                // Parse the M3U file
-                const lines = data.split('\n');
-                const channels = [];
+        // Function to show the file form
+        document.getElementById('from-file-btn').addEventListener('click', function() {
+            document.getElementById('first-page').classList.add('hidden');
+            document.getElementById('second-page').classList.remove('hidden');
+            document.getElementById('file-form').classList.remove('hidden');
+            playerElement.style.display = 'block';
+        });
 
-                // Extract channel information
-                let currentChannel = {};
-                for (let i = 0; i < lines.length; i++) {
-                    if (lines[i].startsWith('#EXTINF:')) {
-                        // Extract channel name and logo URL
-                        currentChannel.name = lines[i].split('tvg-name="')[1].split('"')[0];
-                        currentChannel.logo = lines[i].split('tvg-logo="')[1].split('"')[0];
-                    } else if (!lines[i].startsWith('#')) {
-                        // Extract channel URL
-                        currentChannel.url = lines[i].trim();
-                        channels.push({ ...currentChannel }); // Add channel to the list
-                        currentChannel = {}; // Reset currentChannel
-                    }
+        // Function to show the link form
+        document.getElementById('from-link-btn').addEventListener('click', function() {
+            document.getElementById('first-page').classList.add('hidden');
+            document.getElementById('second-page').classList.remove('hidden');
+            document.getElementById('link-form').classList.remove('hidden');
+            playerElement.style.display = 'block';
+        });
+
+        // Function to load playlist from link
+        document.getElementById('load-link-btn').addEventListener('click', function() {
+            const link = document.getElementById('link-input').value;
+            fetch(link)
+                .then(response => response.text())
+                .then(data => loadPlaylist(data));
+        });
+
+        // Function to load playlist from file
+        document.getElementById('file-input').addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                document.getElementById('load-file-btn').classList.remove('hidden');
+            } else {
+                document.getElementById('load-file-btn').classList.add('hidden');
+            }
+        });
+
+        // Function to load playlist
+        document.getElementById('load-file-btn').addEventListener('click', function() {
+            const file = document.getElementById('file-input').files[0];
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                loadPlaylist(event.target.result);
+            };
+            reader.readAsText(file);
+        });
+
+        function loadPlaylist(data) {
+            const lines = data.split('\n');
+            const channels = [];
+            let currentChannel = {};
+            
+            for (let i = 0; i < lines.length; i++) {
+                if (lines[i].startsWith('#EXTINF:')) {
+                    currentChannel.name = lines[i].split('tvg-name="')[1].split('"')[0];
+                    currentChannel.logo = lines[i].split('tvg-logo="')[1].split('"')[0];
+                } else if (!lines[i].startsWith('#')) {
+                    currentChannel.url = lines[i].trim();
+                    channels.push({ ...currentChannel });
+                    currentChannel = {};
                 }
+            }
 
-                
-                const channelSelector = document.getElementById('channel-selector');
-                channels.forEach(channel => {
-                    const option = document.createElement('option');
-                    option.text = channel.name;
-                    option.value = channel.url;
-                    channelSelector.add(option);
-                });
+            const channelSelector = document.getElementById('channel-selector');
+            channels.forEach((channel, index) => {
+                const option = document.createElement('option');
+                option.text = `${index + 1}. ${channel.name}`;
+                option.value = channel.url;
+                const logoPath = channel.logo || 'default_logo.png'; 
+                option.setAttribute('data-logo', logoPath);
+                option.setAttribute('data-count', index + 1);
+                channelSelector.add(option);
+            });
 
-                // Set event listener for channel selection
-                channelSelector.addEventListener('change', function() {
-                    const selectedUrl = this.value;
-                    player.src(selectedUrl);
-                    player.play();
-                });
-
-                
-                const defaultChannel = channels[0];
-                player.src(defaultChannel.url);
-                player.poster(defaultChannel.logo);
+            channelSelector.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const selectedUrl = selectedOption.value;
+                const selectedLogo = selectedOption.getAttribute('data-logo');
+                const selectedCount = selectedOption.getAttribute('data-count');
+                player.src(selectedUrl);
+                player.poster(selectedLogo);
                 player.play();
             });
+
+            const defaultChannel = channels[0];
+            player.src(defaultChannel.url);
+            player.poster(defaultChannel.logo);
+            player.play();
+        }
     });
 </script>
 
